@@ -1,0 +1,176 @@
+---
+title: "homework1"
+author: "Ashley Spirrison"
+date: "2023-10-01"
+output: github_document
+---
+
+### Creating the Data Set
+
+
+```{r}
+gender <- c('M','M','F','M','F','F','M','F','M')
+age <- c(34, 64, 38, 63, 40, 73, 27, 51, 47)
+smoker <- c('no','yes','no','no','yes','no','no','no','yes')
+exercise <- factor(c('moderate','frequent','some','some','moderate','none','none','moderate','moderate'),
+                    levels=c('none','some','moderate','frequent'), ordered=TRUE
+)
+los <- c(4,8,1,10,6,3,9,4,8)
+x <- data.frame(gender, age, smoker, exercise, los)
+x
+```
+
+### Creating the Model
+
+
+```{r}
+lm(los ~ gender + age + smoker + exercise, dat=x)
+```
+
+### Coefficient has the highest effect on 'los' is genderM
+
+
+
+### Creating a model using los and gender and assign it to the variable mod and running the summary function with mod as its argument.
+
+```{r}
+gender <- c('M','M','F','M','F','F','M','F','M')
+los <- c(4,8,1,10,6,3,9,4,8)
+mod<-lm(los ~ gender,dat=x)
+summary(mod)
+```
+
+
+
+### Determining the estimate for the intercept and gender using coef. funct.
+
+```{r}
+coef(mod)
+#intercept: 3.5, genderM: 4.3
+``` 
+
+
+### Calculating the standard errors. 
+
+```{r}
+sqrt(diag(vcov(summary(mod))))
+
+```
+
+### Calculating test statistics.
+
+```{r}
+mod <- lm(los ~ gender, dat=x)
+mod.c <- coef(summary(mod))
+mod.c[,1]/mod.c[,2]
+
+```
+
+
+### Calculating the p value for gender.
+
+```{r}
+pt(mod.c[,1]/mod.c[,2],7,lower.tail=FALSE)*2
+#gender p-value:0.0224
+
+```
+
+### Predicted Values generation.
+
+
+```{r}
+3.5+(x$gender=='M')*4.3
+```
+
+### Passing model to predict and fitted.
+
+```{r}
+predict(mod)
+fitted(mod)
+```
+
+### Passing newdat to predict.
+
+```{r}
+newdat <- data.frame(gender=c('F','M','F'))
+predict(mod,newdat)
+```
+
+### Residuals determination.
+
+```{r}
+x$los-predict(mod)
+```
+
+### Passing mod to residuals.
+
+```{r}
+residuals(mod)
+```
+
+# Squaring residuals, summing, and comparing to passing mod to def.
+
+```{r}
+t<-residuals(mod)
+sum(t^2)
+deviance(mod)
+#result in equivalent values
+```
+
+### Passing mod to df. residual.
+```{r}
+df.residual(mod)
+```
+
+### Calculating SE.
+
+```{r}
+y<-deviance(mod)/df.residual(mod)
+sqrt(y)
+#standard error:2.197
+```
+
+###Noting it matches the output of the below line.
+
+```{r}
+predict(mod, se.fit=TRUE)$residual.scale
+```
+
+### Running t-test. 
+
+## Creating subset of x where gender is M and assigning to men, doing same with women.
+
+```{r}
+men<-subset(x,gender=='M')
+
+women<-subset(x,gender=='F')
+
+```
+
+### Calculating variance.
+
+```{r}
+#men variance for los
+var(men$los)
+#women variance for los
+var(women$los)
+#variance: men:5.2, women:4.33
+```
+
+### Calling t-test function.
+
+```{r}
+t.test(women$los,men$los)
+t.test(women$los,men$los,var.equal=TRUE)
+#the second one (where var.equal=TRUE) matches the p value for gender from the model summary.
+
+```
+
+### Alternative way to calling t-test.
+
+```{r}
+t.test(los ~ gender, dat=x, var.equal=TRUE)
+# compare p-values
+t.test(los ~ gender, dat=x, var.equal=TRUE)$p.value
+coef(summary(lm(los ~ gender, dat=x)))[2,4]
+```
