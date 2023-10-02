@@ -1,0 +1,178 @@
+---
+title: "homework2"
+author: "Ashley Spirrison"
+date: "2023-10-01"
+output: github_document
+---
+
+# 1. Loading cancer data set into R and making it a data frame called cancer.df.
+```{r}
+    file <- 'cancer.csv'
+    data <- data.frame(read.csv(file))
+    cancer.df <- data.frame(data)
+    cancer.df
+    getwd()
+    
+```
+## Determining the number of rows and columns in the data frame. 
+    ```{r}
+    nrow(cancer.df)
+    ncol(cancer.df)
+    ```
+## Extracting the names of the columns in cancer.df. 
+    
+    ```{r}
+    colnames(cancer.df)
+    ```
+
+## Reporting the value of the 3000th row in column 6.
+    ```{r}
+    cancer.df[3000,6]
+    ```
+
+## Reporting the contents of the 172nd row. 
+    ```{r}
+    cancer.df[172,]
+    ```
+
+## Creating a new column that is the incidence *rate* (per 100,000) for each row. 
+    ```{r}
+    cancer.df[,'new']<-(cancer.df$incidence/cancer.df$population)*100000
+    cancer.df
+    ```
+## Determining how many subgroups (rows) have a zero incidence rate.
+    ```{r}
+    nrow(cancer.df[cancer.df$new == 'zero'])
+    ```
+
+## Finding the subgroup with the highest incidence rate.
+    ```{r}
+    cancer.df[which.max(cancer.df$new),]
+    ```
+
+# 2. Data types.
+
+## Creating the following vector: x <- c("5","12","7"). Determining which of the following commands will produce an error message. For each command, Either explaining why they should be errors, or explaining the non-erroneous result. 
+```{r}
+            x <- c("5","12","7")
+            max(x) 
+            #no error, max function is case-insensitive, can use characters 
+            sort(x)
+            #sort can be utilized to for characters, however the result seems a bit odd because with characters sort tries to put items in ascending order, it looks at the 1 first even though 12 is greater than 5 and 7
+            #sum(x)
+            #there is an error here because you cannot sum (or any other numerical operation) a characters, you would need to instead make the vector numerics then you could find the sum 
+            class(x) 
+```
+
+## For the next two commands, either explaining their results, or why they should produce errors. 
+
+```{r}
+            #y <- c("5",7,12)
+            #y[2] + y[3]
+            #class(y)
+            #there is an error here because y contains characters and you cannot perform binary operations on non-numerics, if you remove the "5" you do not recieve an error (see below)
+            #fix <-c(5,7,12)
+            #fix[2] + fix[3]
+```
+            
+
+## For the next two commands, either explaining their results, or why they should produce errors. 
+```{r}
+            z <- data.frame(z1="5",z2=7,z3=12)
+            z
+            z[1,2] + z[1,3]
+            class(z)
+            #there is not an error here because instead of being a vector, z is now a dataframe. You are selecting for z2 and z3, which are both numerics and can perform the addition without problem.
+```
+
+# 3. Data structures.
+## Given R expressions and returning matrices and vectors. 
+
+## $(1,2,3,4,5,6,7,8,7,6,5,4,3,2,1)$
+```{r}  
+    t <- seq(1,8)
+    l <- seq(7,1)
+    con <-c(t,l)
+    con
+```
+    
+## $(1,2,2,3,3,3,4,4,4,4,5,5,5,5,5)$
+```{r}
+    
+    rep(1:5, times = 1:5)
+```
+
+## $\begin{pmatrix}
+      0 & 1 & 1  \\
+      1 & 0 & 1  \\
+      1 & 1 & 0  \\
+    \end{pmatrix}$
+    
+```{r}
+    row <- 3
+    col <- 3
+    diag_mat <- matrix(1, row, col)
+    diag(diag_mat) <- 0
+    print(diag_mat)
+```
+    
+## $\begin{pmatrix}
+      1 & 2 & 3 & 4 \\
+      1 & 4 & 9 & 16 \\
+      1 & 8 & 27 & 64  \\
+      1 & 16 & 81 & 256 \\
+      1 & 32 & 243 & 1024  \\
+    \end{pmatrix}$
+```{r}
+    nm <- cbind(rep(1, 4),2^(1:5),3^(1:5),4^(1:5))
+    nm
+```
+    
+    
+# 4. Basic programming.
+
+## Let $h(x,n)=1+x+x^2+\ldots+x^n = \sum_{i=0}^n x^i$. Write an R program to calculate $h(x,n)$ using a `for` loop. As an example, use `x = 5` and `n = 2`. 
+```{r}
+   x = 5
+   n = 2
+   h = 0
+   for (i in 1:n)
+   {current = x^i
+   h = h + current}
+   h
+```
+    
+
+
+## Finding the sum of all the multiples of 3 or 5 below 1,000. 
+```{r}
+       x <- c(seq(0,999,5))
+       x
+       y <- c(seq(0,999,3))
+       y
+       z <- sum(x,y)
+       z
+```
+       
+## Finding the sum of all the multiples of 4 or 7 below 1,000,000. 
+```{r}
+       x <- c(seq(0,999999,4))
+       x
+       y <- c(seq(0,999999,7))
+       y
+       z <- sum(x,y)
+       z
+```
+## Writing an R program to calculate the sum of the first 15 even-valued terms.
+```{r}
+y=c(1,2,3,5,8,13,21,34,55,89, 144, 233, 377, 610, 987, 1597, 2584, 4181, 6765, 10946, 17711, 28657, 46368, 75025, 121393, 196418, 317811, 514229, 832040, 1346269, 2178309, 3524578, 5702887, 9227465, 14930352, 24157817, 39088169, 632245986, 102334155, 165580141, 267914296, 433494437, 701408733, 1134903170)
+y
+y_logical <- y %% 2 == 0
+y_logical 
+y_even <- y[y_logical]
+y_even
+z=sum(y_even)
+z
+
+```
+
