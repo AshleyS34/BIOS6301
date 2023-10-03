@@ -1,0 +1,23 @@
+---
+title: "homework4"
+author: "Ashley Spirrison"
+date: "2023-10-02"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+# Question 1-Committing assignments individually in GitHub.
+## This has been completed. 
+
+
+### Question 2 ###
+
+$$
+f=b+a 
+
+$$
+
+
+
+
