@@ -1,23 +1,27 @@
 ---
 title: "homework4"
 author: "Ashley Spirrison"
-date: "2023-10-02"
-output:
-  pdf_document: default
-  html_document: default
+date: "2023-10-03"
+output: github_document
 ---
+#1. all homework has been committed in github
 
-# Question 1-Committing assignments individually in GitHub.
-## This has been completed. 
+#2a. writing first equation using latex.
+$$P(B)=\sum_{j}P(B\mid A_{j})P(A{j}),
+\Rightarrow P(A_{i}\mid B)= \frac{P(B\mid A_{i})P(A_{i})}{\sum_{j}P(B\mid A_{j})P(A_{j})}$$
 
+#2b. writing second equation using latex.
+$\hat{f}(\zeta)=\int_{\ -\infty}^{\infty}f(x)e^{-2\pi i x \zeta}dx$
 
-### Question 2 ###
-
-$$
-f=b+a 
-
-$$
-
-
-
+#2c. writing third equation using latex.
+ $$J=\frac{df}{dx}=
+ \begin{bmatrix}
+ \frac{\partial f}{\partial x_{1}} & \ldots & \frac{\partial f}{\partial x_{n}}\\
+ \end{bmatrix} = 
+ \begin{bmatrix}
+ \frac{\partial f_{1}}{\partial x_{1}} & \ldots & \frac{\partial f_{1}}{\partial x_{n}} \\
+ \vdots & \ddots & \vdots\\
+ \frac{\partial f_{m}}{\partial x_{1}} & \ldots & \frac{\partial f_{m}}{\partial x_{n}}\\
+ \end{bmatrix}
+ $$
 

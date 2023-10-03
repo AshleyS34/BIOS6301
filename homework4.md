@@ -1,35 +1,24 @@
 homework4
 ================
 Ashley Spirrison
-2023-10-02
+2023-10-03
 
-# Question 1-Committing assignments individually in GitHub.
+\#1. all homework has been committed in github
 
-## This has been completed.
+\#2a. writing first equation using latex.
+$$P(B)=\sum_{j}P(B\mid A_{j})P(A{j}),
+\Rightarrow P(A_{i}\mid B)= \frac{P(B\mid A_{i})P(A_{i})}{\sum_{j}P(B\mid A_{j})P(A_{j})}$$
 
-### Question 2
+\#2b. writing second equation using latex.
+$\hat{f}(\zeta)=\int_{\ -\infty}^{\infty}f(x)e^{-2\pi i x \zeta}dx$
 
-**10 points**
-
-Use to create the following expressions.
-
-1.  Hint: `\Rightarrow` (4 points)
-
-    <figure>
-    <img src="eq1.png" alt="equation1" />
-    <figcaption aria-hidden="true">equation1</figcaption>
-    </figure>
-
-2.  Hint: `\zeta` (3 points)
-
-    <figure>
-    <img src="eq2.png" alt="equation2" />
-    <figcaption aria-hidden="true">equation2</figcaption>
-    </figure>
-
-3.  Hint: `\partial` (3 points)
-
-    <figure>
-    <img src="eq3.png" alt="equation3" />
-    <figcaption aria-hidden="true">equation3</figcaption>
-    </figure>
+\#2c. writing third equation using latex. $$J=\frac{df}{dx}=
+ \begin{bmatrix}
+ \frac{\partial f}{\partial x_{1}} & \ldots & \frac{\partial f}{\partial x_{n}}\\
+ \end{bmatrix} = 
+ \begin{bmatrix}
+ \frac{\partial f_{1}}{\partial x_{1}} & \ldots & \frac{\partial f_{1}}{\partial x_{n}} \\
+ \vdots & \ddots & \vdots\\
+ \frac{\partial f_{m}}{\partial x_{1}} & \ldots & \frac{\partial f_{m}}{\partial x_{n}}\\
+ \end{bmatrix}
+ $$
