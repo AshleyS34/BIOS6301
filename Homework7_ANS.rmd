@@ -43,7 +43,9 @@ x <- genData(500)
 
 
 ```{r}
-#2. For each `id`, determining if there is more than a one year gap in between observations. Adding a new row at the one year mark (two for two years, etc.), with the `a1c` value set to missing. 
+#2. For each `id`, determining if there is more than a one year gap in between observations. 
+#Adding a new row at the one year mark (two for two years, etc.), with the `a1c` 
+#value set to missing. 
 
 addMissingRows <- function(data) {
   result <- vector("list", length = nrow(data))
@@ -80,10 +82,13 @@ addMissingRows <- function(data) {
 
 x <- addMissingRows(x)
 
-#3. Creating a new column `visit`.  For each `id`, adding the visit number from 1 to n depending on the number of observations for each individual. Observations created with missing a1c values are included.
+#3. Creating a new column `visit`.  For each `id`, adding the visit number from 
+#1 to n depending on the number of observations for each individual. Observations 
+#created with missing a1c values are included.
 x$visit <- ave(x$id, x$id, FUN = seq_along)
 
-#4. For each `id`, determining and replacing missing values with the mean `a1c` value for each individual.
+#4. For each `id`, determining and replacing missing values with the 
+#mean `a1c` value for each individual.
 mean_a1c <- aggregate(a1c ~ id, data = x, FUN = function(x) mean(x, na.rm = TRUE))
 
 for (i in 1:nrow(mean_a1c)) {
@@ -126,7 +131,8 @@ head(sw_fry_1000)
 ```
 
 ```{r}
-#1. Removing all non-alphabetical characters and making all characters lowercase. Saving the result as a. 
+#1. Removing all non-alphabetical characters and making all characters lowercase. 
+#Saving the result as a. 
 
 a <- tolower(gsub("[^[:alpha:]]", "", sw_fry_1000))
 save(a, file = "a.RData")
@@ -157,7 +163,8 @@ print(result)
 ```
 
 ```{r}
-#5. Finding the number of words that contain 4 or more consonants (with y included as a consonant).
+#5. Finding the number of words that contain 4 or more
+#consonants (with y included as a consonant).
 pattern <- "(.*[bcdfghjklmnpqrstvwxyz]{4,}.*)"
 count <- sum(grepl(pattern, a))
 print(count)
@@ -171,7 +178,8 @@ print(result)
 
 ```
 ```{r}
-#7. Finding all words that contain "k" followed by another letter. Running table command on first character following first "k" of each word. 
+#7. Finding all words that contain "k" followed by another letter. 
+#Running table command on first character following first "k" of each word. 
 matches <- grep("k[A-Za-z]", a, value = TRUE)
 
 following_chars <- regmatches(matches, regexpr("(?<=k).", matches, perl = TRUE))
@@ -222,7 +230,13 @@ tryCatch(myfun(haart_df, death), error = function(e) e)
 #1.  Debugging the myfun function
 debug(myfun)
 tryCatch(myfun(haart_df, "death"), error = function(e) e)
-#through debugging, an error message is recieved that indicates that variable lengths differ. I believe this is due to the as.formula(response~.) section, which indicates that a variable 'response' should appear as a column in dat. The formula construction uses a character string and therefore does not recognize the variable 'response' as a column of dat. The 'variable lengths differ' error message is due to the function not being able to find the response variable in the dataset. 
+#through debugging, an error message is recieved that indicates 
+#that variable lengths differ.
+#I believe this is due to the as.formula(response~.) section, which indicates 
+#that a variable 'response' should appear as a column in dat. The formula construction 
+#uses a character string and therefore does not recognize the variable 'response' 
+#as a column of dat. The 'variable lengths differ' error message is due to the
+#function not being able to find the response variable in the dataset. 
 
 
 
