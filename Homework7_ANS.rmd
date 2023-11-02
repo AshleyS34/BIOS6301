@@ -1,0 +1,257 @@
+---
+title: 'Bios 6301: Homework 7'
+author: Ashley Spirrison 
+output: pdf_document
+---
+
+*Due Thursday, 02 November, 1:00 PM*
+
+$5^{n=day}$ points taken off for each day late.
+
+40 points total.
+
+Submit a single knitr file (named `homework7.rmd`), along with a valid PDF output file. Inside the file, clearly indicate which parts of your responses go with which problems (you may use the original homework document as a template). Add your name as `author` to the file's metadata section. Raw R code/output or word processor files are not acceptable.
+
+Failure to name file `homework7.rmd` or include author name may result in 5 points taken off.
+
+### Question 1 ###
+
+**21 points**
+
+Use the following code to generate data for patients with repeated measures of A1C (a test for levels of blood glucose).
+
+```{r}
+genData <- function(n) {
+    if(exists(".Random.seed", envir = .GlobalEnv)) {
+        save.seed <- get(".Random.seed", envir= .GlobalEnv)
+        on.exit(assign(".Random.seed", save.seed, envir = .GlobalEnv))
+    } else {
+        on.exit(rm(".Random.seed", envir = .GlobalEnv))
+    }
+    set.seed(n)
+    subj <- ceiling(n / 10)
+    id <- sample(subj, n, replace=TRUE)
+    times <- as.integer(difftime(as.POSIXct("2005-01-01"), as.POSIXct("2000-01-01"), units='secs'))
+    dt <- as.POSIXct(sample(times, n), origin='2000-01-01')
+    mu <- runif(subj, 4, 10)
+    a1c <- unsplit(mapply(rnorm, tabulate(id), mu, SIMPLIFY=FALSE), id)
+    data.frame(id, dt, a1c)
+}
+x <- genData(500)
+```
+
+
+
+```{r}
+#2. For each `id`, determining if there is more than a one year gap in between observations. Adding a new row at the one year mark (two for two years, etc.), with the `a1c` value set to missing. 
+
+addMissingRows <- function(data) {
+  result <- vector("list", length = nrow(data))
+  k <- 1
+
+  data <- data[order(data$id, data$dt), ]  #1. Ordering the data set by `id` and `dt`.
+
+  for (i in unique(data$id)) {
+    temp_data <- data[data$id == i, ]
+    temp_data$dt <- as.POSIXct(temp_data$dt)  
+    temp_data <- temp_data[order(temp_data$dt), ]  
+
+    for (j in 1:(nrow(temp_data) - 1)) {
+      time_diff <- as.numeric(difftime(temp_data$dt[j + 1], temp_data$dt[j], units = "days"))
+      if (!is.na(time_diff) && time_diff >= 365) {
+        num_missing_years <- floor(time_diff / 365)
+        for (m in 1:(num_missing_years - 1)) {
+          if (m == 1) {
+            new_dt <- as.POSIXct(temp_data$dt[j] + as.difftime(365 * m, units = "days"))  
+            new_row <- data.frame(id = i, dt = new_dt, a1c = NA)
+            temp_data <- rbind(temp_data[1:j, ], new_row, temp_data[(j + 1):nrow(temp_data), ]) 
+            j <- j + 1  
+          }
+        }
+      }
+    }
+    result[[k]] <- temp_data
+    k <- k + 1
+  }
+
+  result <- do.call(rbind, result)
+  return(result)
+}
+
+x <- addMissingRows(x)
+
+#3. Creating a new column `visit`.  For each `id`, adding the visit number from 1 to n depending on the number of observations for each individual. Observations created with missing a1c values are included.
+x$visit <- ave(x$id, x$id, FUN = seq_along)
+
+#4. For each `id`, determining and replacing missing values with the mean `a1c` value for each individual.
+mean_a1c <- aggregate(a1c ~ id, data = x, FUN = function(x) mean(x, na.rm = TRUE))
+
+for (i in 1:nrow(mean_a1c)) {
+  id_val <- mean_a1c[i, "id"]
+  mean_val <- mean_a1c[i, "a1c"]
+  x$a1c[x$id == id_val & is.na(x$a1c)] <- mean_val
+}
+
+#5.Printing the mean a1c for each id.
+print(mean_a1c)
+
+#6.Calculating and printing the total number of visits for each id.
+total_visits <- aggregate(visit ~ id, data = x, FUN = length)
+
+print(total_visits)
+
+#7.Printing the observations for id = 15.
+print(x[x$id == 15, ])
+
+
+
+```
+
+
+
+### Question 2 ###
+
+**16 points**
+
+Install the `lexicon` package. Load the `sw_fry_1000` vector, which contains 1,000 common words.
+
+```{r}
+options(repos = c(CRAN = "http://cran.rstudio.com/"))
+
+
+install.packages("lexicon")
+library(lexicon)
+data('sw_fry_1000', package = 'lexicon')
+head(sw_fry_1000)
+```
+
+```{r}
+#1. Removing all non-alphabetical characters and making all characters lowercase. Saving the result as a. 
+
+a <- tolower(gsub("[^[:alpha:]]", "", sw_fry_1000))
+save(a, file = "a.RData")
+print(a)
+```
+
+
+
+```{r}
+#2. Determining the number of words containing the string "ar". 
+count <- sum(grepl("ar", a))
+print(count)
+
+```
+
+```{r}
+#3. Finding a six-letter word that starts with "l" and ends with "r".  
+six_letter_word <- a[grep("^l[a-z]{4}r$", a)]
+print(six_letter_word)
+```
+
+
+```{r}
+#4. Returning all words starting with "col" or end with "eck".
+result <- a[grep("^col|eck$", a)]
+print(result)
+
+```
+
+```{r}
+#5. Finding the number of words that contain 4 or more consonants (with y included as a consonant).
+pattern <- "(.*[bcdfghjklmnpqrstvwxyz]{4,}.*)"
+count <- sum(grepl(pattern, a))
+print(count)
+
+```
+
+```{r}
+#6 Returning all words that have a "q" not followed by a "ui".
+result <- a[grep("q(?!ui)", a, perl = TRUE)]
+print(result)
+
+```
+```{r}
+#7. Finding all words that contain "k" followed by another letter. Running table command on first character following first "k" of each word. 
+matches <- grep("k[A-Za-z]", a, value = TRUE)
+
+following_chars <- regmatches(matches, regexpr("(?<=k).", matches, perl = TRUE))
+
+char_table <- table(following_chars)
+
+print(char_table)
+
+```
+
+
+
+```{r}
+#Removing all vowels and determining the number of character strings found once. 
+a_no_vowels <- gsub("[aeiou]", "", a)
+
+unique_count <- length(which(table(a_no_vowels) == 1))
+
+print(unique_count)
+
+```
+**3 points**
+
+The first argument to most functions that fit linear models are formulas.  The following example defines the response variable `death` and allows the model to incorporate all other variables as terms. `.` is used to mean all columns not otherwise in the formula.
+
+```{r}
+url <- "https://github.com/couthcommander/Bios6301/raw/main/datasets/haart.csv"
+haart_df <- read.csv(url)[,c('death','weight','hemoglobin','cd4baseline')]
+coef(summary(glm(death ~ ., data=haart_df, family=binomial(logit))))
+```
+
+Now imagine running the above several times, but with a different response and data set each time.  Here's a function:
+
+```{r}
+myfun <- function(dat, response) {
+  form <- as.formula(response ~ .)
+  coef(summary(glm(form, data=dat, family=binomial(logit))))
+}
+```
+
+Unfortunately, it doesn't work. `tryCatch` is "catching" the error so that this file can be knit to PDF.
+
+```{r}
+tryCatch(myfun(haart_df, death), error = function(e) e)
+```
+
+```{r}
+#1.  Debugging the myfun function
+debug(myfun)
+tryCatch(myfun(haart_df, "death"), error = function(e) e)
+#through debugging, an error message is recieved that indicates that variable lengths differ. I believe this is due to the as.formula(response~.) section, which indicates that a variable 'response' should appear as a column in dat. The formula construction uses a character string and therefore does not recognize the variable 'response' as a column of dat. The 'variable lengths differ' error message is due to the function not being able to find the response variable in the dataset. 
+
+
+
+```
+
+```{r}
+#bonus. creating a working function.
+
+url <- "https://github.com/couthcommander/Bios6301/raw/main/datasets/haart.csv"
+haart_df <- read.csv(url)[,c('death','weight','hemoglobin','cd4baseline')]
+coef(summary(glm(death ~ ., data=haart_df, family=binomial(logit))))
+
+myfun <- function(dat, response) {
+  form <- as.formula(paste(response, "~ ."))
+  coef(summary(glm(form, data=dat, family=binomial(logit))))
+}
+# Creating a sample dataset
+set.seed(123)  
+n <- 100
+dat <- data.frame(
+  response = sample(c(0, 1), n, replace = TRUE),
+  x1 = rnorm(n),
+  x2 = rnorm(n),
+  x3 = rnorm(n)
+)
+
+# Testing the function
+result <- myfun(dat, "response")
+print(result)
+
+
+```
