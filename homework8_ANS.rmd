@@ -1,0 +1,306 @@
+---
+title: 'Bios 6301: Assignment 8'
+author: Ashley Spirrison 
+output: pdf_document
+---
+
+*Due Tuesday, 14 November, 1:00 PM*
+
+### Question 1 ###
+
+```{r}
+#installing 'readx1' package and running code. 
+fn <- 'icd10.xlsx'
+if(file.access(fn, mode = 4) == -1) {
+    url <- "https://www.cdc.gov/nhsn/xls/icd10-pcs-pcm-nhsn-opc.xlsx"
+    download.file(url, destfile = fn, mode = 'wb')
+}
+dat <- readxl::read_excel(fn, sheet = 2)
+```
+
+
+```{r}
+#1.
+#showing class of dat. 
+cat("class of dat:", class(dat), "\n")
+
+```
+
+```{r}
+#2.
+#displaying methods available for classes of dat.
+#since there are multiple classes, looping through and determining methods associated with each class. 
+cat("Methods for the classes of dat:\n")
+for(class_name in class(dat)) {
+  cat("class:", class_name, "\n")
+  print(methods(class = class_name))
+  cat("\n")
+}
+
+```
+```{r}
+#3.
+#calling print(dat) to look at print method being dispatched.
+print(dat)
+#A tibble is being utilized as the print method 
+```
+
+```{r}
+#4.
+#setting class of 'dat' to be a data.frame
+class(dat) <- "data.frame"
+cat("class of dat:", class(dat), "\n")
+```
+
+
+
+```{r}
+#5.
+#re-printing to determine if the print method has changed by 
+#setting class of 'dat' to be a data.frame.
+print(dat)
+#a dataframe print method is being utilized.
+
+```
+
+
+
+```{r}
+#defining new generic function 'nUnique'.
+nUnique <- function(x) {
+    UseMethod('nUnique')
+}
+```
+
+
+```{r}
+#6.
+#writing a dafault method for 'nUnique' to count number of unique values/ element. 
+nUnique.default <- function(x) {
+  unique_values <- unique(x)
+  num_unique <- length(unique_values)
+  cat("Number of unique values:", num_unique, "\n")
+  return(num_unique)
+}
+
+```
+
+
+
+```{r}
+#7.
+#checking function. 
+nUnique(letters) # should return 26
+nUnique(sample(10, 100, replace = TRUE)) # should return 10 (probably)
+#function appears to be working properly 
+```
+
+
+```{r}
+#8.
+#writing a data.frame method for 'nUnique' to operate on data.frame objects. Returning counts for each column in a data.frame. 
+nUnique.data.frame <- function(x) {
+  num_unique <- sapply(x, function(col) length(unique(col)))
+  cat("number of unique values for each column:\n")
+  print(num_unique)
+  return(num_unique)
+}
+
+```
+
+
+
+```{r}
+#9.
+#checking function with dat. 
+nUnique(dat)
+```
+
+### Question 2 ###
+
+**15 points**
+
+```{r}
+#Question 2, 1.
+
+#Setting RNG seed.
+set.seed(8)
+
+# Defining the makePatient function.
+makePatient <- function() {
+  vowel <- grep("[aeiou]", letters)
+  cons <- grep("[^aeiou]", letters)
+  name <- paste(sample(LETTERS[cons], 1), sample(letters[vowel], 1), sample(letters[cons], 1), sep='')
+  gender <- factor(sample(0:1, 1), levels=0:1, labels=c('female','male'))
+  dob <- as.Date(sample(7500, 1), origin="1970-01-01")
+  n <- sample(6, 1)
+  doa <- as.Date(sample(1500, n), origin="2010-01-01")
+  pulse <- round(rnorm(n, 80, 10))
+  temp <- round(rnorm(n, 98.4, 0.3), 2)
+  fluid <- round(runif(n), 2)
+  list(name, gender, dob, doa, pulse, temp, fluid)
+}
+
+# Defining the medicalRecord class.
+medicalRecord <- function(name, gender, dob, doa, pulse, temp, fluid) {
+  structure(
+    list(
+      name = name,
+      gender = gender,
+      dob = dob,
+      doa = doa,
+      pulse = pulse,
+      temp = temp,
+      fluid = fluid
+    ),
+    class = "medicalRecord"
+  )
+}
+
+# Defining a print method for the medicalRecord class.
+print.medicalRecord <- function(x) {
+  cat("Medical Record:\n")
+  cat("Name:", x$name, "\n")
+  cat("Gender:", levels(x$gender)[x$gender], "\n")
+  cat("Date of Birth:", x$dob, "\n")
+  cat("Date of Admission:", x$doa, "\n")
+  cat("Pulse:", x$pulse, "\n")
+  cat("Temperature:", x$temp, "\n")
+  cat("Fluid Intake:", x$fluid, "\n")
+}
+
+# Generating a medical record using makePatient.
+patient_data <- makePatient()
+medical_record <- medicalRecord(
+  name = patient_data[[1]],
+  gender = patient_data[[2]],
+  dob = patient_data[[3]],
+  doa = patient_data[[4]],
+  pulse = patient_data[[5]],
+  temp = patient_data[[6]],
+  fluid = patient_data[[7]]
+)
+
+# Printing the medical record.
+print(medical_record)
+
+# Printing the class of the medical record.
+cat("Class of the medical record:", class(medical_record), "\n")
+
+```
+
+
+```{r}
+#2.
+
+# Defining a method for the generic function 'mean' for medicalRecord objects.
+mean.medicalRecord <- function(x) {
+  # Calculating means for pulse, temperature, and fluid
+  pulse_mean <- mean(x$pulse)
+  temp_mean <- mean(x$temp)
+  fluid_mean <- mean(x$fluid)
+
+  # Returning a named list of means
+  list(
+    pulse = pulse_mean,
+    temperature = temp_mean,
+    fluid_intake = fluid_mean
+  )
+}
+
+# Defining a method for the generic function 'print' for medicalRecord objects.
+print.medicalRecord <- function(x) {
+  cat("Medical Record:\n")
+  cat("Name:", x$name, "\n")
+  cat("Gender:", levels(x$gender)[x$gender], "\n")
+  cat("Date of Birth:", x$dob, "\n")
+  cat("Date of Admission:", x$doa, "\n")
+  cat("Pulse:", x$pulse, "\n")
+  cat("Temperature:", x$temp, "\n")
+  cat("Fluid Intake:", x$fluid, "\n")
+}
+
+# Defining a method for the generic function 'plot' for medicalRecord objects.
+plot.medicalRecord <- function(x, ...) {
+  par(mfrow = c(3, 1), mar = c(4, 4, 2, 1))
+
+  # Plotting pulse over time.
+  plot(x$doa, x$pulse, type = "o", main = "Pulse Over Time", xlab = "Date of Admission", ylab = "Pulse")
+
+  # Plotting temperature over time.
+  plot(x$doa, x$temp, type = "o", main = "Temperature Over Time", xlab = "Date of Admission", ylab = "Temperature")
+
+  # Plotting fluid intake over time.
+  plot(x$doa, x$fluid, type = "o", main = "Fluid Intake Over Time", xlab = "Date of Admission", ylab = "Fluid Intake")
+
+  par(mfrow = c(1, 1), mar = c(5, 4, 4, 2) + 0.1)
+}
+
+
+# Calling the 'mean' method for the medical record.
+means <- mean(medical_record)
+cat("Means:\n")
+print(means)
+
+# Calling the 'print' method for the medical record.
+print(medical_record)
+
+# Calling the 'plot' method for the medical record.
+plot(medical_record)
+
+
+
+```
+
+
+
+```{r}
+#3.
+# Resetting RNG seed to 8
+set.seed(8)
+
+# Defining the patientCohort class
+patientCohort <- function(patients) {
+  structure(
+    list(patients = patients),
+    class = "patientCohort"
+  )
+}
+
+# Defining a method for the generic function 'mean' for patientCohort objects
+mean.patientCohort <- function(x) {
+  # Apply the 'mean' method to each patient in the cohort
+  patient_means <- lapply(x$patients, function(patient) {
+    numeric_data <- Filter(is.numeric, patient)
+    if (length(numeric_data) > 0) {
+      means <- sapply(numeric_data, mean)
+      names(means) <- names(numeric_data)
+      return(means)
+    } else {
+      return(NULL)
+    }
+  })
+  return(patient_means)
+}
+
+# Defining a method for the generic function 'print' for patientCohort objects
+print.patientCohort <- function(x) {
+  cat("Patient Cohort:\n")
+  # Apply the 'print' method to each patient in the cohort
+  lapply(x$patients, print)
+}
+
+# Creating a cohort of ten patients
+patient_cohort <- patientCohort(replicate(10, makePatient(), simplify = FALSE))
+
+# Showing the output for 'mean' and 'print' for the patient cohort
+cat("Means for Patient Cohort:\n")
+print(mean(patient_cohort))
+
+cat("\nPrint for Patient Cohort:\n")
+print(patient_cohort)
+
+
+
+
+```
