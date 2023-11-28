@@ -1,0 +1,266 @@
+---
+title: 'Bios 6301: Assignment 9'
+output: pdf_document
+---
+
+*Due Tuesday, 28 November, 1:00 PM*
+
+$5^{n=day}$ points taken off for each day late.
+
+40 points total.
+
+Submit a single knitr file (named `homework9.rmd`), along with a valid PDF output file. Inside the file, clearly indicate which parts of your responses go with which problems (you may use the original homework document as a template). Add your name as `author` to the file's metadata section. Raw R code/output or word processor files are not acceptable.
+
+Failure to name file `homework9.rmd` or include author name may result in 5 points taken off.
+
+### Question 1 ###
+
+**15 points**
+
+Consider the following very simple genetic model (*very* simple -- don't worry if you're not a geneticist!). A population consists of equal numbers of two sexes: male and female. At each generation men and women are paired at random, and each pair produces exactly two offspring, one male and one female. We are interested in the distribution of height from one generation to the next. Suppose that the height of both children is just the average of the height of their parents, how will the distribution of height change across generations?
+
+Represent the heights of the current generation as a data frame with two variables, m and f, for the two sexes. We can use `rnorm` to randomly generate the population at generation 1:
+
+```{r}
+pop <- data.frame(m = rnorm(100, 160, 20), f = rnorm(100, 160, 20))
+
+
+```
+
+The following function takes the data frame `pop` and randomly permutes the ordering of the men. Men and women are then paired according to rows, and heights for the next generation are calculated by taking the mean of each row. The function returns a data frame with the same structure, giving the heights of the next generation.
+
+```{r}
+next_gen <- function(pop) {
+    pop$m <- sample(pop$m)
+    pop$m <- rowMeans(pop)
+    pop$f <- pop$m
+    pop
+}
+```
+
+Use the function `next_gen` to generate nine generations (you already have the first), then use the function `hist` to plot the distribution of male heights in each generation (this will require multiple calls to `hist`). The phenomenon you see is called regression to the mean.  Provide (at least) minimal decorations such as title and x-axis labels.
+
+```{r}
+# Plotting the distribution of male heights for each generation
+par(mfrow=c(3, 3)) 
+
+for (i in 1:9) {
+    hist(pop$m, main = paste("Generation", i), xlab = "Male Height", col = "green", ylim = c(0, 25))
+    pop <- next_gen(pop)
+}
+
+
+
+```
+
+### Question 2 ###
+
+**10 points**
+
+Use the simulated results from question 1 to reproduce (as closely as possible) the following plot in ggplot2.
+
+![generations plot](http://d.pr/i/Xh0d+)
+
+```{r}
+
+# loading ggplot2, grid, and gridExtra
+library(ggplot2)
+library(grid)
+library(gridExtra)
+
+# Creating function to generate next generation
+next_gen <- function(pop) {
+  pop$m <- sample(pop$m)
+  pop$m <- rowMeans(pop)
+  pop$f <- pop$m
+  pop
+}
+
+# Generating data for nine generations
+populations <- list()
+populations[[1]] <- data.frame(m = rnorm(100, 160, 20), f = rnorm(100, 160, 20))
+for (i in 2:9) {
+  populations[[i]] <- next_gen(populations[[i-1]])
+}
+
+# Creating a list to store ggplot objects
+plots <- list()
+
+# Generating scatter plots for each generation
+for (i in 1:9) {
+  plots[[i]] <- ggplot(populations[[i]], aes(x = m, y = f)) +
+    geom_point(alpha = 0.7, na.rm = TRUE)  +
+    labs(title = paste("              ", i),
+         x = "",
+         y = "")
+    theme(
+      panel.background = element_rect(fill = "grey90", color = "white", size = 1.5),
+      plot.background = element_rect(fill = "grey90", color = "white", size = 1.5),
+      axis.line = element_line(color = "white", size = 1.5),
+      axis.text = element_text(color = "black"),
+      axis.ticks = element_line(color = "white"),
+      panel.grid = element_line(color = "white", size = 0.5)
+      
+    )
+  
+  # Removing x-axis values for generations 1-6
+  if (i <= 6) {
+    plots[[i]] <- plots[[i]] + theme(axis.text.x = element_blank())
+  }
+    
+      
+  # Removing y-axis values 
+  if (i %in% c(2, 3, 5, 6, 8, 9)) {
+    plots[[i]] <- plots[[i]] + theme(axis.text.y = element_blank())
+  }
+  
+  # Add custom y-axis for generations 1, 4, and 7
+  if (i %in% c(1, 4, 7)) {
+    plots[[i]] <- plots[[i]] + scale_y_continuous(limits = c(118, 204), breaks = c(120, 140, 160, 180, 200))
+  }
+  
+  # Adding custom x-axis for generations 7, 8, and 9
+  if (i %in% c(7, 8, 9)) {
+    plots[[i]] <- plots[[i]] + scale_x_continuous(limits = c(95, 220), breaks = c(100, 120, 140, 160, 180, 200, 220))
+  }
+}
+
+# Arranging plots in a 3x3 grid
+grid_arrange <- grid.arrange(grobs = plots, ncol = 3)
+
+# Adding global labels using grid.text
+grid.text("f", x = 0.02, y = 0.5, rot = 90, gp = gpar(fontsize = 12))
+grid.text("m", x = 0.5, y = 0.02, gp = gpar(fontsize = 12))
+
+
+# Printing the arranged grid
+grid_arrange
+
+
+
+```
+
+### Question 3 ###
+
+**15 points**
+
+You calculated the power of a study design in question #1 of assignment 3. The study has two variables, treatment group and outcome. There are two treatment groups (0, 1) and they should be assigned randomly with equal probability. The outcome should be a random normal variable with a mean of 60 and standard deviation of 20. If a patient is in the treatment group, add 5 to the outcome.
+
+Starting with a sample size of 250, create a 95% bootstrap percentile interval for the mean of each group. Then create a new bootstrap interval by increasing the sample size by 250 until the sample is 2500. Thus you will create a total of 10 bootstrap intervals.  Each bootstrap should create 1000 bootstrap samples. (9 points)
+
+Produce a line chart that includes the bootstrapped mean and lower and upper percentile intervals for each group.  Add appropriate labels and a legend. (6 points)
+
+You may use base graphics or ggplot2.  It should look similar to this (in base).
+
+```{r}
+
+
+# Loading the 'ggplot2' package
+library(ggplot2)
+
+# Creating function to generate data for the study
+generate_data <- function(sample_size) {
+  set.seed(42)
+  treatment_groups <- sample(c(0, 1), size = sample_size, replace = TRUE, prob = c(0.5, 0.5))
+  outcome <- rnorm(n = sample_size, mean = 60, sd = 20)
+  outcome[treatment_groups == 1] <- outcome[treatment_groups == 1] + 5
+  data <- data.frame(Treatment_Group = as.factor(treatment_groups), Outcome = outcome)
+  return(data)
+}
+
+# Creating function to calculate the mean and percentile intervals for each group
+calculate_bootstrap_intervals <- function(data, num_bootstrap_samples = 1000) {
+  bootstrap_results <- boot(data, function(x, indices) tapply(x[indices, "Outcome"], x[indices, "Treatment_Group"], mean), R = num_bootstrap_samples)
+  
+  # Calculating mean and percentile intervals for each group
+  group_means <- apply(bootstrap_results$t, 2, mean)
+  lower_bound <- apply(bootstrap_results$t, 2, function(x) quantile(x, 0.025))
+  upper_bound <- apply(bootstrap_results$t, 2, function(x) quantile(x, 0.975))
+  
+  return(data.frame(
+    Treatment_Group = c(0, 1),
+    Mean_Difference = group_means[2] - group_means[1],
+    Lower_Bound = lower_bound[2] - upper_bound[1],
+    Upper_Bound = upper_bound[2] - lower_bound[1]
+  ))
+}
+
+# Creating function to perform bootstrap for different sample sizes
+perform_bootstrap <- function(initial_sample_size, num_intervals = 10, sample_increase = 250) {
+  intervals_list <- vector("list", length = num_intervals)
+  
+  for (i in 1:num_intervals) {
+    data <- generate_data(initial_sample_size + (i - 1) * sample_increase)
+    intervals_list[[i]] <- calculate_bootstrap_intervals(data)
+  }
+  
+  return(do.call(rbind, intervals_list))
+}
+
+# Performing bootstrap for different sample sizes
+bootstrap_intervals <- perform_bootstrap(initial_sample_size, num_intervals, sample_increase)
+# Creating a data frame for plotting
+plot_data <- data.frame(
+  Sample_Size = rep(seq(initial_sample_size, initial_sample_size + (num_intervals - 1) * sample_increase, by = sample_increase), each = 4),
+  Treatment_Group = rep(c(0, 1), each = 2, times = num_intervals),
+  Mean_Difference = c(bootstrap_intervals$Mean_Difference[bootstrap_intervals$Treatment_Group == 0],
+                      bootstrap_intervals$Mean_Difference[bootstrap_intervals$Treatment_Group == 1]),
+  Lower_Bound = c(bootstrap_intervals$Lower_Bound[bootstrap_intervals$Treatment_Group == 0],
+                  bootstrap_intervals$Lower_Bound[bootstrap_intervals$Treatment_Group == 1]),
+  Upper_Bound = c(bootstrap_intervals$Upper_Bound[bootstrap_intervals$Treatment_Group == 0],
+                  bootstrap_intervals$Upper_Bound[bootstrap_intervals$Treatment_Group == 1])
+)
+
+print(plot_data)
+
+
+# Plotting the line chart
+ggplot(plot_data, aes(x = Sample_Size, y = Mean_Difference, color = factor(Treatment_Group))) +
+  geom_line() +
+  geom_ribbon(aes(ymin = Lower_Bound, ymax = Upper_Bound, fill = factor(Treatment_Group)), alpha = 0.3) +
+  labs(
+    title = "Bootstrap Intervals for Mean Difference between Treatment Groups",
+    x = "Sample Size",
+    y = "Mean Difference",
+    caption = "95% Bootstrap Percentile Intervals"
+  ) +
+  scale_color_manual(values = c("red", "blue")) +
+  scale_fill_manual(values = c("red", "blue"), guide = FALSE) +
+  theme_minimal()
+
+
+
+
+
+
+```
+```{r}
+
+#![bp interval plot](bpi.jpg)
+
+#Here's an example of how you could create transparent shaded areas.
+
+makeTransparent = function(..., alpha=0.5) {
+  if(alpha<0 | alpha>1) stop("alpha must be between 0 and 1")
+  alpha = floor(255*alpha)  
+  newColor = col2rgb(col=unlist(list(...)), alpha=FALSE)
+  .makeTransparent = function(col, alpha) {
+    rgb(red=col[1], green=col[2], blue=col[3], alpha=alpha, maxColorValue=255)
+  }
+  newColor = apply(newColor, 2, .makeTransparent, alpha=alpha)
+  return(newColor)
+}
+
+par(new=FALSE)
+plot(NULL,
+  xlim=c(-1, 1),
+  ylim=c(-1, 1),
+  xlab="",
+  ylab=""
+)
+
+polygon(x=c(seq(-0.75, 0.25, length.out=100), seq(0.25, -0.75, length.out=100)),
+        y=c(rep(-0.25, 100), rep(0.75, 100)), border=NA, col=makeTransparent('blue',alpha=0.5))
+polygon(x=c(seq(-0.25, 0.75, length.out=100), seq(0.75, -0.25, length.out=100)),
+        y=c(rep(-0.75, 100), rep(0.25, 100)), border=NA, col=makeTransparent('red',alpha=0.5))
+```
